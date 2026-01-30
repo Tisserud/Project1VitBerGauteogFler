@@ -84,9 +84,17 @@ def forward(
     # Oppgave 4.1: Start
     #######################################################################
 
-    # Placeholder initialization — replace this with your implementation
-    out = None
+    
+    x_norm = (x - cfg.x_min) / (cfg.x_max - cfg.x_min)
+    y_norm = (y - cfg.y_min) / (cfg.y_max - cfg.y_min)
+    t_norm = (t - cfg.t_min) / (cfg.t_max - cfg.t_min)
+    
+    a = jnp.stack([x_norm, y_norm, t_norm], axis=-1)
 
+    for w_i, b_i in nn_params[:-1]:
+        a = jnp.tanh(a @ w_i + b_i)
+    a = a @ nn_params[-1][0] + nn_params[-1][1]
+    out = a.squeeze()
     #######################################################################
     # Oppgave 4.1: Slutt
     #######################################################################
