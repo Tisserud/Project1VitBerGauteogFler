@@ -20,6 +20,27 @@ def main():
     #######################################################################
     # Oppgave 4.4: Start
     #######################################################################
+    #Initialisering av treningsdata
+    x, y, t, T_fdm, sensor_data = generate_training_data(cfg)
+    
+    #Trening av nettverket
+    nn_params, loss_dict = train_nn(sensor_data, cfg)
+
+    #Prediksjon av data
+    T_pred = predict_grid(nn_params, x, y, t, cfg)
+
+    #Plotting
+
+    plot_snapshots(
+        x,
+        y,
+        t, 
+        T_pred, 
+        save_path = "output/nn/nn_snapshots.png" )
+    
+    create_animation(
+        x, y, t, T_pred, title="NN", save_path="output/nn/nn_animation.gif"
+    )
 
     #######################################################################
     # Oppgave 4.4: Slutt
