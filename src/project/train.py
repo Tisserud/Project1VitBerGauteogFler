@@ -43,7 +43,7 @@ def train_nn(
             L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
             L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
             return L_data + L_ic, (L_data, L_ic)
-        values, grads = jax.value_and_grad(jit(objective_fn), has_aux=True)(nn_params)
+        values, grads = jax.value_and_grad(objective_fn, has_aux=True)(nn_params)
 
         
 
