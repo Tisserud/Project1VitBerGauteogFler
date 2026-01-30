@@ -33,8 +33,14 @@ def solve_heat_equation(
     # Oppgave 3.2: Start
     #######################################################################
 
+    A = _build_matrix(cfg, dx, dy, dt)
     # Placeholder initialization — replace this with your implementation
     T = np.zeros((cfg.nt, cfg.nx, cfg.ny))
+    T[0,:,:] = cfg.T_outside
+    for i in range(1,cfg.nt):
+        b = _build_rhs(cfg, T[i-1,:,:], X, Y, dx, dy, dt, t[i])
+        T_next = np.linalg.solve(A,b)
+        T[i,:,:] = np.reshape(T_next, (cfg.nx,cfg.ny))
 
     #######################################################################
     # Oppgave 3.2: Slutt
