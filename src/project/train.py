@@ -45,12 +45,15 @@ def train_nn(
             return L_data + L_ic, (L_data, L_ic)
         values, grads = jax.value_and_grad(jit(objective_fn), has_aux=True)(nn_params)
 
+        
+
         nn_params, adam_state = adam_step(nn_params, grads, adam_state, lr=cfg.learning_rate)
 
         # Update the nn_params and losses dictionary
-        losses["total"].append(values[0])
-        losses["data"].append(values[1][0])
-        losses["ic"].append(values[1][1])
+        total, (data, ic) = values
+        losses["total"].append(total)
+        losses["data"].append(data)
+        losses["ic"].append(ic)
 
     #######################################################################
     # Oppgave 4.3: Slutt
