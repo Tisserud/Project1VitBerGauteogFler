@@ -39,15 +39,13 @@ def train_nn(
 
     for _ in tqdm(range(cfg.num_epochs), desc="Training NN"):
         ic_epoch, key = sample_ic(key, cfg)
-        lambda_d = cfg.lambda_data
-        lambda_ic = cfg.lambda_ic
         def objective_fn(
             nn_params : list[tuple[jnp.ndarray, jnp.ndarray]],
             sensor_data : jnp.ndarray, 
-            ic_epoch, 
-            cfg : Config
+            ic_epoch,
+            cfg : Config 
             )-> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray]]:
-            """"Objective function of NN, to be jitted
+            """"Objective function of NN
             
             Args:
                 nn_params: Network parameters
@@ -107,8 +105,17 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
         ic_epoch, key = sample_ic(key, cfg)
         bc_epoch, key = sample_bc(key, cfg)
 
-        def objective_fn(pinn_params):
+        def objective_fn(
+            pinn_params : dict
+            ) -> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]]:
+            """"Objective function of PINN
             
+            Args:
+                pinn_param: Dictionary of system parameters
+            Returns:
+                objetive function: Objective funcion to be optimized
+                partial losses: Tuple of individual losses
+            """
             nn_params = pinn_params['nn']
 
             L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
