@@ -34,33 +34,26 @@ def train_nn(
     #######################################################################
     # Oppgave 4.3: Start
     #######################################################################
-
+    def objective_fn(
+        nn_params : list[tuple[jnp.ndarray, jnp.ndarray]],
+        )-> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray]]:
+        """"Objective function of NN
+        Args:
+            nn_params: Network parameters
+        Returns:
+            objetive function: Objective funcion to be optimized
+            partial losses: Tuple of individual losses
+            """
+            
+        L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
+        L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
+        return L_data + L_ic, (L_data, L_ic)
     
 
     for _ in tqdm(range(cfg.num_epochs), desc="Training NN"):
         ic_epoch, key = sample_ic(key, cfg)
-        def objective_fn(
-            nn_params : list[tuple[jnp.ndarray, jnp.ndarray]],
-            sensor_data : jnp.ndarray, 
-            ic_epoch,
-            cfg : Config 
-            )-> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray]]:
-            """"Objective function of NN
-            
-            Args:
-                nn_params: Network parameters
-                sensor_data: Sensor measurements [x, y, t, T]
-                ic_epoch: Points for initial condition during epoch
-                cfg: Configuration
-            Returns:
-                objetive function: Objective funcion to be optimized
-                partial losses: Tuple of individual losses
-            """
-            
-            L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
-            L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
-            return L_data + L_ic, (L_data, L_ic)
-        values, grads = jax.value_and_grad(objective_fn, has_aux=True)(nn_params, sensor_data, ic_epoch, cfg)
+        
+        values, grads = jax.value_and_grad(jit(objective_fn), has_aux=True)(nn_params)
 
         
 
@@ -99,37 +92,35 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
     #######################################################################
     # Oppgave 5.3: Start
     #######################################################################
+    def objective_fn(
+        pinn_params : dict
+        ) -> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]]:
+        """"Objective function of PINN            
+        Args:
+            pinn_param: Dictionary of system parameters
+        Returns:                
+            objetive function: Objective funcion to be optimized
+            partial losses: Tuple of individual losses
+            """
+        nn_params = pinn_params['nn']
 
+        L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
+        L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
+        L_ph = cfg.lambda_physics*physics_loss(pinn_params, interior_epoch, cfg)
+        L_bc = cfg.lambda_bc * bc_loss(pinn_params, bc_epoch, cfg)
+
+        L = L_data + L_ic + L_ph + L_bc
+
+        return L, (L_data, L_ic, L_ph, L_bc)
+    
     for _ in tqdm(range(cfg.num_epochs), desc = "Training PINN"):
         interior_epoch, key = sample_interior(key, cfg)
         ic_epoch, key = sample_ic(key, cfg)
         bc_epoch, key = sample_bc(key, cfg)
 
-        def objective_fn(
-            pinn_params : dict
-            ) -> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]]:
-            """"Objective function of PINN
-            
-            Args:
-                pinn_param: Dictionary of system parameters
-            Returns:
-                objetive function: Objective funcion to be optimized
-                partial losses: Tuple of individual losses
-            """
-            nn_params = pinn_params['nn']
-
-            L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
-            L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
-            L_ph = cfg.lambda_physics*physics_loss(pinn_params, interior_epoch, cfg)
-            L_bc = cfg.lambda_bc * bc_loss(pinn_params, bc_epoch, cfg)
-
-            L = L_data + L_ic + L_ph + L_bc
-
-            return L, (L_data, L_ic, L_ph, L_bc)
         
-        values, grads = jax.value_and_grad(objective_fn, has_aux=True)(pinn_params)
-
         
+        values, grads = jax.value_and_grad(jit(objective_fn), has_aux=True)(pinn_params)
 
         pinn_params, opt_state = adam_step(pinn_params, grads, opt_state, lr=cfg.learning_rate)
 
