@@ -39,11 +39,30 @@ def train_nn(
 
     for _ in tqdm(range(cfg.num_epochs), desc="Training NN"):
         ic_epoch, key = sample_ic(key, cfg)
-        def objective_fn(nn_params):
+        lambda_d = cfg.lambda_data
+        lambda_ic = cfg.lambda_ic
+        def objective_fn(
+            nn_params : list[tuple[jnp.ndarray, jnp.ndarray]],
+            sensor_data : jnp.ndarray, 
+            ic_epoch, 
+            cfg : Config
+            )-> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray]]:
+            """"Objective function of NN, to be jitted
+            
+            Args:
+                nn_params: Network parameters
+                sensor_data: Sensor measurements [x, y, t, T]
+                ic_epoch: Points for initial condition during epoch
+                cfg: Configuration
+            Returns:
+                objetive function: Objective funcion to be optimized
+                partial losses: Tuple of individual losses
+            """
+            
             L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
             L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
             return L_data + L_ic, (L_data, L_ic)
-        values, grads = jax.value_and_grad(objective_fn, has_aux=True)(nn_params)
+        values, grads = jax.value_and_grad(objective_fn, has_aux=True)(nn_params, sensor_data, ic_epoch, cfg)
 
         
 
