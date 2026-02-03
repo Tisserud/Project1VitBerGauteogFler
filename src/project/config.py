@@ -29,7 +29,7 @@ class Config:
     source_locations: jnp.ndarray
     source_sizes: jnp.ndarray
     source_strength: float
-
+    
     # Grid
     nx: int
     ny: int
@@ -68,9 +68,9 @@ class Config:
         inside = (dx <= sizes[:, None, None]) & (dy <= sizes[:, None, None])
         return jnp.any(inside, axis=0)  # same shape as x, y
 
-    def heat_source(self, x, y, t):
+    def heat_source(self, x, y, t, T,time):
         """Heat source term at point (x, y, t)."""
-        return jnp.where(self.is_source(x, y), self.source_strength, 0.0)
+        return jnp.where(self.is_source(x, y), source_strength_func(self.source_strength,T,time), 0.0)
 
 
 def load_config(path: str | Path = "config.yaml") -> Config:
@@ -122,3 +122,15 @@ def load_config(path: str | Path = "config.yaml") -> Config:
         num_ic=data["training"]["num_ic"],
         num_bc=data["training"]["num_bc"],
     )
+def source_strength_func(source_strength,T,time):
+    Kp= 1
+    Ki=0.01
+    Kd=0.01
+    Prop=Kp*error_func(source_strength,T,time)
+    Inte=Kp*Ki*sum([error_func(source_strength,T,i) for i in range(time)])
+    Deri=Kp*Kd*(error_func(source_strength,T,time)-error_func(source_strength,T,time-1))
+    return source_strength + Prop + Inte + Deri
+
+def error_func(source_strength,T,time):
+    return (source_strength-sum((T[time,-1,0],T[time,-1,-1],T[time,0,0],T[time,0,-1]))/4)
+

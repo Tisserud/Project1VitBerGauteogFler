@@ -38,7 +38,7 @@ def solve_heat_equation(
     T = np.zeros((cfg.nt, cfg.nx, cfg.ny))
     T[0,:,:] = cfg.T_outside
     for i in range(1,cfg.nt):
-        b = _build_rhs(cfg, T[i-1,:,:], X, Y, dx, dy, dt, t[i])
+        b = _build_rhs(cfg, T, i, X, Y, dx, dy, dt, t[i])
         T_next = np.linalg.solve(A,b)
         T[i,:,:] = np.reshape(T_next, (cfg.nx,cfg.ny))
 
@@ -94,12 +94,12 @@ def _build_matrix(cfg: Config, dx: float, dy: float, dt: float) -> np.ndarray:
     return A
 
 
-def _build_rhs(cfg: Config, T_curr, X, Y, dx, dy, dt, t_next):
+def _build_rhs(cfg: Config, T, time, X, Y, dx, dy, dt, t_next):
     """Build right-hand side for implicit system."""
-    rhs = T_curr.copy()
+    rhs = T[time-1].copy()
 
     # Heat source
-    q = np.array(cfg.heat_source(X, Y, t_next))
+    q = np.array(cfg.heat_source(X, Y, t_next,T,time-1))
     rhs += dt * q
 
     # Robin BC contributions
