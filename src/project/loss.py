@@ -60,9 +60,12 @@ def ic_loss(
     #######################################################################
     # Oppgave 4.2: Start
     #######################################################################
-
+    def T_fn(x, y):
+            residual = forward(nn_params, x, y, 0, cfg) - cfg.T_outside
+            return residual
     
-    ic_loss_val = jnp.mean((forward(nn_params, x, y, 0, cfg) - cfg.T_outside)**2)
+    residual = T_fn(x, y)
+    ic_loss_val = jnp.mean(residual**2)
 
     #######################################################################
     # Oppgave 4.2: Slutt (se også data_loss)
