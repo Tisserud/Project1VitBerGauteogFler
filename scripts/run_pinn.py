@@ -54,12 +54,12 @@ def main():
     x = [x for x in range(len(total))]
 
     plt.figure()
-    plt.plot(x, total, label = "total")
-    plt.plot(x, data, label = "data")
-    plt.plot(x, physics, label = "physics")
-    plt.plot(x, bc, label = "bc")
-    plt.plot(x, ic, label = "ic")
-    plt.title("Losses plot")
+    plt.plot(x, jnp.log(total), label = "total")
+    plt.plot(x, jnp.log(data), label = "data")
+    plt.plot(x, jnp.log(physics), label = "physics")
+    plt.plot(x, jnp.log(bc), label = "bc")
+    plt.plot(x, jnp.log(ic), label = "ic")
+    plt.title("Log loss")
     plt.grid()
     plt.legend()
     plt.savefig('output/pinn/losses.png')

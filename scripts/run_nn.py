@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from viz import create_animation, plot_snapshots
+import jax.numpy as jnp
 
 from project import (
     generate_training_data,
@@ -53,10 +54,10 @@ def main():
     x = [x for x in range(len(total))]
 
     plt.figure()
-    plt.plot(x, total, label = "total")
-    plt.plot(x, data, label = "data")
-    plt.plot(x, ic, label = "ic")
-    plt.title("Losses plot")
+    plt.plot(x, jnp.log(total), label = "total")
+    plt.plot(x, jnp.log(data), label = "data")
+    plt.plot(x, jnp.log(ic), label = "ic")
+    plt.title("Log loss")
     plt.grid()
     plt.legend()
     plt.savefig('output/nn/losses.png')
