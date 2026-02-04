@@ -34,6 +34,7 @@ def train_nn(
     #######################################################################
     # Oppgave 4.3: Start
     #######################################################################
+    @jit
     def objective_fn(
         nn_params : list[tuple[jnp.ndarray, jnp.ndarray]],
         )-> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray]]:
@@ -92,6 +93,7 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
     #######################################################################
     # Oppgave 5.3: Start
     #######################################################################
+    @jit
     def objective_fn(
         pinn_params : dict
         ) -> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]]:

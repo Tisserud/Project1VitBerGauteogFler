@@ -42,6 +42,29 @@ def main():
         x, y, t, T_pred, title="NN", save_path="output/pinn/pinn_animation.gif"
     )
 
+    #Losses
+
+    total = loss_dict['total']
+    data = loss_dict['data']
+    physics = loss_dict['physics']
+    bc = loss_dict['bc']
+    ic = loss_dict['ic']
+
+
+    x = [x for x in range(len(total))]
+
+    plt.figure()
+    plt.plot(x, total, label = "total")
+    plt.plot(x, data, label = "data")
+    plt.plot(x, physics, label = "physics")
+    plt.plot(x, bc, label = "bc")
+    plt.plot(x, ic, label = "ic")
+    plt.title("Losses plot")
+    plt.grid()
+    plt.legend()
+    plt.savefig('output/pinn/losses.png')
+
+
     print(f"""
 alpha: {jnp.exp(pinn_params['log_alpha'])}
 k: {jnp.exp(pinn_params['log_k'])}

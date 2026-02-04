@@ -42,6 +42,25 @@ def main():
         x, y, t, T_pred, title="NN", save_path="output/nn/nn_animation.gif"
     )
 
+
+    #losses
+
+    total = loss_dict['total']
+    data = loss_dict['data']
+    ic = loss_dict['ic']
+
+
+    x = [x for x in range(len(total))]
+
+    plt.figure()
+    plt.plot(x, total, label = "total")
+    plt.plot(x, data, label = "data")
+    plt.plot(x, ic, label = "ic")
+    plt.title("Losses plot")
+    plt.grid()
+    plt.legend()
+    plt.savefig('output/nn/losses.png')
+
     #######################################################################
     # Oppgave 4.4: Slutt
     #######################################################################
