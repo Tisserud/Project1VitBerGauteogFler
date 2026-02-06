@@ -94,7 +94,6 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
     #######################################################################
     # Oppgave 5.3: Start
     #######################################################################
-    @jit
     def objective_fn(
         pinn_params : dict
         ) -> tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]]:
@@ -116,28 +115,43 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
 
         return L, (L_data, L_ic, L_ph, L_bc)
     
-    objective_fn_jit = jit(objective_fn)
+    @jit
+    def step_function(
+        params : dict,
+        state : dict
+        ) -> tuple[dict, dict, tuple[jnp.ndarray, tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]]]:
+        """Gjennomfør en epoke, for enklere  jitting
+
+        Args:
+            params: Params to optimizse
+            state: Optimizer state
+        Returns:
+            params: Optimized params
+            state: Optimizer state
+            values: TUple of values of lossfunction
+        """
+        values, grads = jax.value_and_grad(objective_fn, has_aux=True)(params)
+
+        params, state = adam_step(pinn_params, grads, opt_state, cfg.learning_rate)
+
+        return params, state, values
     
+    step_function_jit = jit(step_function)
+
     for _ in tqdm(range(cfg.num_epochs), desc = "Training PINN"):
         interior_epoch, key = sample_interior(key, cfg)
         ic_epoch, key = sample_ic(key, cfg)
         bc_epoch, key = sample_bc(key, cfg)
 
-        
-        
-        values, grads = jax.value_and_grad(objective_fn_jit, has_aux=True)(pinn_params)
-
-        pinn_params, opt_state = adam_step(pinn_params, grads, opt_state, cfg.learning_rate)
-
         # Update the pinn_params and losses dictionary
+        pinn_params, opt_state, values = step_function_jit(pinn_params, opt_state)
+
         total, (data, ic, ph, bc) = values
         losses["total"].append(total)
         losses["data"].append(data)
         losses["ic"].append(ic)
         losses["physics"].append(ph)
         losses["bc"].append(bc)
-
-
 
     #######################################################################
     # Oppgave 5.3: Slutt
