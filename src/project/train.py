@@ -46,15 +46,16 @@ def train_nn(
             partial losses: Tuple of individual losses
             """
             
-        L_data = cfg.lambda_data*data_loss(nn_params, sensor_data, cfg)
-        L_ic = cfg.lambda_ic*ic_loss(nn_params, ic_epoch, cfg)
+        L_data = cfg.lambda_data * data_loss(nn_params, sensor_data, cfg)
+        L_ic = cfg.lambda_ic * ic_loss(nn_params, ic_epoch, cfg)
         return L_data + L_ic, (L_data, L_ic)
     
+    objective_fn_jit = jit(objective_fn)
 
     for _ in tqdm(range(cfg.num_epochs), desc="Training NN"):
         ic_epoch, key = sample_ic(key, cfg)
         
-        values, grads = jax.value_and_grad(jit(objective_fn), has_aux=True)(nn_params)
+        values, grads = jax.value_and_grad(objective_fn_jit, has_aux=True)(nn_params)
 
         
 
@@ -115,6 +116,8 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
 
         return L, (L_data, L_ic, L_ph, L_bc)
     
+    objective_fn_jit = jit(objective_fn)
+    
     for _ in tqdm(range(cfg.num_epochs), desc = "Training PINN"):
         interior_epoch, key = sample_interior(key, cfg)
         ic_epoch, key = sample_ic(key, cfg)
@@ -122,9 +125,9 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
 
         
         
-        values, grads = jax.value_and_grad(jit(objective_fn), has_aux=True)(pinn_params)
+        values, grads = jax.value_and_grad(objective_fn_jit, has_aux=True)(pinn_params)
 
-        pinn_params, opt_state = adam_step(pinn_params, grads, opt_state, lr=cfg.learning_rate)
+        pinn_params, opt_state = adam_step(pinn_params, grads, opt_state, cfg.learning_rate)
 
         # Update the pinn_params and losses dictionary
         total, (data, ic, ph, bc) = values
