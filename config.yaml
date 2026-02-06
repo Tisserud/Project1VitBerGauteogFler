@@ -10,20 +10,20 @@ domain:
 # Temporal domain (hours)
 time:
   t_min: 0.0
-  t_max: 24
+  t_max: 48
 
 # Physical parameters
 physics:
   alpha: 0.5           # Thermal diffusivity
   k: 0.04               # Thermal conductivity
-  h: 0.005              # Heat transfer coefficient (0 = perfectly insulated walls)
+  h: 0.05         # Heat transfer coefficient (0 = perfectly insulated walls)
   T_outside: 0.0        # Outside temperature (constant)
 
 # Heat source configuration
 source:
   locations:
-    - [7.5, 2.5]        # Heat source position (x, y)
-    - [2.5, 2.5]        # Additional heat source position
+    - [5, 2.5]        # Heat source position (x, y)
+    #- [2.5, 2.5]        # Additional heat source position
   sizes:
     - 0.5                # Heat source size (meters)
     # - 0.3                # Additional heat source size
@@ -45,13 +45,13 @@ sensors:
     - [5.0, 2.5]        # Center of room
     # At the center and corner of walls
     - [5.0, 5.0]
-    - [5.0, 0.0]
-    - [0.0, 2.5]
-    - [10.0, 2.5]
-    - [0.0, 0.0]
+    - [5.0, 0.2]
+    - [0.2, 2.5]
+    - [9.8, 2.5]
+    - [0.2, 0.2]
     - [0.0, 5.0]
-    - [10.0, 0.0]
-    - [10.0, 5.0]
+    - [9.8, 0.0]
+    - [9.8, 5.0]
 
 # Training parameters
 training:

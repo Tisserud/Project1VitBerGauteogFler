@@ -70,7 +70,7 @@ class Config:
 
     def heat_source(self, x, y, t, T,time):
         """Heat source term at point (x, y, t)."""
-        return jnp.where(self.is_source(x, y), source_strength_func(self.source_strength,T,time), 0.0)
+        return jnp.where(self.is_source(x, y), source_strength_func(self,T,time), 0.0)
 
 
 def load_config(path: str | Path = "config.yaml") -> Config:
@@ -122,15 +122,18 @@ def load_config(path: str | Path = "config.yaml") -> Config:
         num_ic=data["training"]["num_ic"],
         num_bc=data["training"]["num_bc"],
     )
-def source_strength_func(source_strength,T,time):
-    Kp= 1
-    Ki=0.01
-    Kd=0.01
-    Prop=Kp*error_func(source_strength,T,time)
-    Inte=Kp*Ki*sum([error_func(source_strength,T,i) for i in range(time)])
-    Deri=Kp*Kd*(error_func(source_strength,T,time)-error_func(source_strength,T,time-1))
-    return source_strength + Prop + Inte + Deri
+def source_strength_func(self,T,time):
+    Kp=1.1
+    Ki=0.08
+    Kd=0
+    Prop=Kp*error_func(self,T,time)
+    Inte=Ki*sum([error_func(self,T,max(i,0)) for i in range(time-100,time)])
+    Deri=Kd*(error_func(self,T,time)-error_func(self,T,time-1))
+    return max(Prop + Inte + Deri,0) + self.source_strength
 
-def error_func(source_strength,T,time):
-    return (source_strength-sum((T[time,-1,0],T[time,-1,-1],T[time,0,0],T[time,0,-1]))/4)
+def error_func(self,T,time): 
+    c = self.sensor_locations
+    justering=jnp.array((self.nx/(self.x_max-self.x_min),self.ny/(self.y_max-self.y_min)))
+    justert_c=[jnp.round(jnp.multiply(justering,location)) for location in c]
+    return sum([(self.source_strength-T[time,int(location[0])-1,int(location[1])-1]) for location in justert_c])/len(self.sensor_locations)
 
