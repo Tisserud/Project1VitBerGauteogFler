@@ -100,10 +100,10 @@ def physics_loss(pinn_params, interior_points, cfg: Config):
         f_xx = grad(grad(T_fn, 0), 0)(x, y, t)
         f_yy = grad(grad(T_fn, 1), 1)(x, y, t)
 
-        power = jnp.exp(pinn_params['log_power'])
+        # power = jnp.exp(pinn_params['log_power'])
         alpha = jnp.exp(pinn_params['log_alpha'])
 
-        residual = f_t - alpha * (f_xx + f_yy) - cfg.is_source(x, y) * power
+        residual = f_t - alpha * (f_xx + f_yy) 
 
         return residual
     

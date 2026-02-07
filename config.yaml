@@ -10,7 +10,7 @@ domain:
 # Temporal domain (hours)
 time:
   t_min: 0.0
-  t_max: 48
+  t_max: 24
 
 # Physical parameters
 physics:
@@ -61,9 +61,9 @@ training:
   seed: 42
 
   # Loss weights
-  lambda_physics: 1.0
+  lambda_physics: 2
   lambda_ic:  1.0
-  lambda_bc: 1.0
+  lambda_bc: 2
   lambda_data: 1.0
 
   # Sampling
