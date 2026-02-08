@@ -132,7 +132,7 @@ def train_pinn(sensor_data: jnp.ndarray, cfg: Config) -> tuple[dict, dict]:
         """
         values, grads = jax.value_and_grad(objective_fn, has_aux=True)(params)
 
-        params, state = adam_step(pinn_params, grads, opt_state, cfg.learning_rate)
+        params, state = adam_step(params, grads, opt_state, cfg.learning_rate)
 
         return params, state, values
     
